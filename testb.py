@@ -2,7 +2,7 @@
 import hashlib
 
 
-#Class for the loaner
+# Class for the loaner
 class Loaner:
     def __init__(self, fname, lname, l_id):
         self.fname = fname
@@ -13,14 +13,16 @@ class Loaner:
         print("Loaner Information:")
         print(f"Name: {self.fname} {self.lname}")
         print(f"Loaner ID: {self.l_id}")
-# A method to search for a registerd loaner via the ID
+
+    # A method to search for a registerd loaner via the ID
     def checkloaner(self, cid):
         if cid == self.l_id:
             return True
         else:
             return False
 
-# A class to define a client 
+
+# A class to define a client
 class Client:
     def __init__(self, fname: str, lname: str, c_id):
         self.fname = fname
@@ -31,22 +33,26 @@ class Client:
         print("Client Information:")
         print(f"Name: {self.fname} {self.lname}")
         print(f"Client ID: {self.c_id}")
-# A method to search for the client via the ID
+
+    # A method to search for the client via the ID
     def checkclient(self, pid):
         if pid == self.c_id:
             return True
         else:
             return False
 
+
 # ==========================================================
 class Transaction:
-    def __init__(self, amount, lon_id=None, cl_id=None, t_id=None):
+    def __init__(
+        self, amount, lon_id=None, cl_id=None, t_id=None, t_hash=None, prev_hash=None
+    ):
         self.amount = amount
         self.lon_id = lon_id
         self.cl_id = cl_id
         self.t_id = t_id
-        self.previous_block_hash = None
-        self.block_hash = None
+        self.prev_hash = prev_hash
+        self.t_hash = t_hash
         # self.previous_block_hash = previous_block_hash
 
         # self.block_data = f"{' - '.join(transaction_list)} - {previous_block_hash}"
@@ -56,14 +62,14 @@ class Transaction:
         print("Transaction Details:")
         print(f"IDs: {self.lon_id} {self.cl_id} {self.t_id}")
         print(f"Amount of Money: {self.amount}")
-        print(f"Previous Block Hash: {self.previous_block_hash}")
+        print(f"Block Hash: {self.t_hash}")
+        print(f"Previous Block Hash: {self.prev_hash}")
 
     def checktransaction(self, tid):
         if tid == self.t_id:
             return True
         else:
             return False
-
 
     # class MMBlockCoin:
     #     def __init__(self, previous_block_hash, transaction_list):
@@ -77,22 +83,21 @@ class Blockchain:
         self.chain = []
         self.generate_first_block()
 
-    def print_blocks (self):
+    def print_blocks(self):
         strings = []
         for transaction in self.chain:
             transaction.transaction_info()
 
     def generate_first_block(self):
-        self.chain.append(Transaction("0", ['First Block']))
-    
+        self.chain.append(Transaction("0", ["First Block"]))
+
     def create_block_from_transaction(self, lon_id, cl_id, t_id, amount):
         previous_block_hash = self.last_block.block_hash
         self.chain.append(Transaction(amount, lon_id, cl_id, t_id))
 
-    def createblock(self,transaction):
+    def createblock(self, transaction):
         transaction.previous_block_hash = self.last_block.block_hash
         self.chain.append(transaction)
-
 
     def display_chain(self):
         for i in range(len(self.chain)):
@@ -103,11 +108,12 @@ class Blockchain:
     def last_block(self):
         return self.chain[-1]
 
+
 # ==========================================================
-# Various lists to store the loaner, client, and transaction data 
+# Various lists to store the loaner, client, and transaction data
 loaners = []
 clients = []
-transactions = []
+transactions = [Transaction("0", ["First Block"], t_hash="0")]
 trblockchain = Blockchain()
 # ==========================================================
 def menu():
@@ -117,7 +123,8 @@ def menu():
     print("[3] Enter Client Information")
     print("[4] Search for Client")
     print("[5] Create a Transaction")
-    print("[6] Finalize Transaction")
+    print("[6] Display Transaction Chain")
+    print("[7] Finalize Transaction")
 
 
 # ==========================================================
@@ -153,8 +160,13 @@ while option != 0:
             cl_id = input("Please Enter Client ID:")
             t_id = input("Please Enter a ID for the Transaction:")
             amount = input("Enter The Amount of Money to be Loaned:")
-            transactions.append(Transaction(lon_id, cl_id, t_id, amount))
+            t_hash = hashlib.sha256(str([lon_id, cl_id, t_id, amount]).encode()).hexdigest()
+            prev_hash = transactions[-1].t_hash
+            transactions.append(Transaction(amount, lon_id, cl_id, t_id, t_hash, prev_hash))
     elif option == 6:
+        for trans in transactions:
+            trans.transaction_info()
+    elif option == 7:
         loanerid_forsearch = input("PLEASE ENTER YOUR Loaner's ID:")
         for lonr in loaners:
             if lonr.checkloaner(loanerid_forsearch):
